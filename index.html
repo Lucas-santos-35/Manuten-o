@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FerreiraAssistencias - Gestão Profissional</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-gray: #f4f7f6;
+            --border-color: #dcdde1;
+            --text-dark: #2f3640;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            flex-direction: row;
+        }
+
+        /* Sidebar - Desktop */
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+            border-left: 4px solid transparent;
+            font-size: 0.95rem;
+        }
+
+        .nav-item:hover { background-color: var(--secondary-color); }
+        .nav-item.active {
+            background-color: var(--secondary-color);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* Main Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .top-bar {
+            height: 60px;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .content-body { padding: 15px; padding-bottom: 80px; }
+
+        /* Dashboard Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: var(--white);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--border-color);
+        }
+
+        .kpi-card.receita { border-top-color: var(--success-color); }
+        .kpi-card.despesa { border-top-color: var(--danger-color); }
+        .kpi-card.estoque { border-top-color: var(--warning-color); }
+
+        .kpi-card .label { font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; font-weight: bold; }
+        .kpi-card .value { font-size: 1.1rem; font-weight: bold; display: block; margin-top: 5px; }
+
+        /* Tables & Lists */
+        .data-table-container {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { background: #f1f2f6; text-align: left; padding: 12px; font-size: 0.75rem; color: #57606f; border-bottom: 1px solid var(--border-color); }
+        td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
+
+        /* Buttons & Badges */
+        .btn {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary { background: var(--accent-color); color: white; }
+        .btn-danger { background: var(--danger-color); color: white; }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .status-aberto { background: #e3f2fd; color: #1976d2; }
+        .status-pronto { background: #e8f5e9; color: #2e7d32; }
+        .status-entregue { background: #eeeeee; color: #616161; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+        .modal-content {
+            background: var(--white);
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            border-radius: 12px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .form-row { margin-bottom: 15px; }
+        .form-row label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: bold; }
+        .form-row input, .form-row select { 
+            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem;
+        }
+
+        /* Sections */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* Responsive UI for Mobile (Telemóvel) */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 65px;
+                flex-direction: row;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            }
+            .sidebar-header { display: none; }
+            .nav-menu {
+                display: flex;
+                padding: 0;
+                justify-content: space-around;
+                width: 100%;
+            }
+            .nav-item {
+                flex: 1;
+                flex-direction: column;
+                padding: 10px 0;
+                font-size: 0.65rem;
+                text-align: center;
+                border-left: none;
+                border-top: 3px solid transparent;
+                justify-content: center;
+            }
+            .nav-item.active {
+                border-left: none;
+                border-top: 3px solid var(--accent-color);
+                background: rgba(255,255,255,0.05);
+            }
+            .nav-item::before {
+                content: '';
+                font-size: 1.2rem;
+                margin-bottom: 2px;
+            }
+            .nav-item:nth-child(1)::before { content: '📊'; }
+            .nav-item:nth-child(2)::before { content: '🔧'; }
+            .nav-item:nth-child(3)::before { content: '📦'; }
+            .nav-item:nth-child(4)::before { content: '💰'; }
+
+            .top-bar { padding: 0 15px; }
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-card .value { font-size: 1rem; }
+            
+            /* Melhorias de toque */
+            .btn { min-height: 44px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar / Bottom Bar on Mobile -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>Ferreira <br>Assistências</h1>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="navigate('dashboard', this)">Dashboard</div>
+            <div class="nav-item" onclick="navigate('servicos', this)">Ordens</div>
+            <div class="nav-item" onclick="navigate('estoque', this)">Estoque</div>
+            <div class="nav-item" onclick="navigate('financeiro', this)">Financeiro</div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <span id="page-title" style="font-weight: bold; color: var(--primary-color);">DASHBOARD</span>
+            <div id="date-now" style="font-size: 0.75rem; color: #7f8c8d;"></div>
+        </div>
+
+        <div class="content-body">
+            
+            <!-- SECTION: DASHBOARD -->
+            <section id="dashboard" class="section active">
+                <div class="dashboard-grid">
+                    <div class="kpi-card receita">
+                        <span class="label">Receitas</span>
+                        <span class="value" id="kpi-receita">R$ 0,00</span>
+                    </div>
+                    <div class="kpi-card despesa">
+                        <span class="label">Despesas</span>
+                        <span class="value" id="kpi-despesa">R$ 0,00</span>
+                    </div>
+                    <div class="kpi-card estoque">
+                        <span class="label">Garrados</span>
+                        <span class="value" id="kpi-garrado">0 itens</span>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <div class="table-header"><h3>OS em Aberto</h3></div>
+                    <div style="overflow-x: auto;">
+                        <table id="table-dash-os">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Aparelho</th>
+                                    <th>Status</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: SERVIÇOS (CRUD) -->
+            <section id="servicos" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Gestão de OS</h3>
+                    <button class="btn btn-primary" onclick="openOSModal()">+ Nova OS</button>
+                </div>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>OS</th>
+                                <th>Cliente</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="os-list-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION: ESTOQUE -->
+            <section id="estoque" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Stock de Peças</h3>
+                    <button class="btn btn-primary" onclick="openEstoqueModal()">+ Item</button>
+                </div>
+                <div class="data-table-container">
+                    <table id="table-estoque">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qtd</th>
+                                <th>Preço</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="estoque-list-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION: FINANCEIRO -->
+            <section id="financeiro" class="section">
+                <div class="kpi-card" style="margin-bottom: 20px; border-top: 4px solid var(--accent-color);">
+                    <span class="label">Balanço Líquido</span>
+                    <span class="value" id="fin-balanco" style="font-size: 1.8rem;">R$ 0,00</span>
+                </div>
+                <div class="data-table-container">
+                    <div class="table-header"><h3>Movimentações</h3></div>
+                    <table id="table-financeiro">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fin-list-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL: ORDEM DE SERVIÇO -->
+    <div id="modal-os" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="os-modal-title" style="margin-bottom: 15px;">Nova OS</h3>
+            <form id="form-os">
+                <input type="hidden" id="os-edit-id">
+                <div class="form-row">
+                    <label>Cliente</label>
+                    <input type="text" id="os-cliente" required>
+                </div>
+                <div class="form-row">
+                    <label>Aparelho</label>
+                    <input type="text" id="os-aparelho" required>
+                </div>
+                <div class="form-row">
+                    <label>Valor (R$)</label>
+                    <input type="number" step="0.01" id="os-valor" required>
+                </div>
+                <div class="form-row">
+                    <label>Status</label>
+                    <select id="os-status">
+                        <option value="Aberto">Aberto</option>
+                        <option value="Pronto">Pronto</option>
+                        <option value="Entregue">Entregue</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn" style="flex: 1;" onclick="closeModals()">Cancelar</button>
+                    <button type="submit" class="btn btn-success" style="flex: 1;">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ESTOQUE -->
+    <div id="modal-estoque" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">Adicionar ao Stock</h3>
+            <form id="form-estoque">
+                <div class="form-row">
+                    <label>Nome da Peça</label>
+                    <input type="text" id="est-nome" required>
+                </div>
+                <div class="form-row">
+                    <label>Quantidade</label>
+                    <input type="number" id="est-qtd" required>
+                </div>
+                <div class="form-row">
+                    <label>Custo Unitário (R$)</label>
+                    <input type="number" step="0.01" id="est-custo" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn" style="flex: 1;" onclick="closeModals()">Cancelar</button>
+                    <button type="submit" class="btn btn-success" style="flex: 1;">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGICA DE ESTADO E PERSISTÊNCIA ---
+        let appData = {
+            os: JSON.parse(localStorage.getItem('f_assist_os')) || [],
+            estoque: JSON.parse(localStorage.getItem('f_assist_est')) || [],
+            movimentacoes: JSON.parse(localStorage.getItem('f_assist_mov')) || []
+        };
+
+        function save() {
+            localStorage.setItem('f_assist_os', JSON.stringify(appData.os));
+            localStorage.setItem('f_assist_est', JSON.stringify(appData.estoque));
+            localStorage.setItem('f_assist_mov', JSON.stringify(appData.movimentacoes));
+            render();
+        }
+
+        // --- NAVEGAÇÃO ---
+        function navigate(sectionId, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            el.classList.add('active');
+            document.getElementById('page-title').innerText = sectionId.toUpperCase();
+            if(window.innerWidth <= 768) window.scrollTo(0,0);
+        }
+
+        // --- CRUD OS ---
+        function openOSModal(id = null) {
+            const form = document.getElementById('form-os');
+            form.reset();
+            document.getElementById('os-edit-id').value = id || '';
+            document.getElementById('os-modal-title').innerText = id ? 'Editar OS' : 'Nova OS';
+
+            if(id) {
+                const item = appData.os.find(x => x.id == id);
+                document.getElementById('os-cliente').value = item.cliente;
+                document.getElementById('os-aparelho').value = item.aparelho;
+                document.getElementById('os-valor').value = item.valor;
+                document.getElementById('os-status').value = item.status;
+            }
+            document.getElementById('modal-os').style.display = 'flex';
+        }
+
+        document.getElementById('form-os').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('os-edit-id').value;
+            const valor = parseFloat(document.getElementById('os-valor').value);
+            const status = document.getElementById('os-status').value;
+            const cliente = document.getElementById('os-cliente').value;
+            
+            if(id) {
+                const idx = appData.os.findIndex(x => x.id == id);
+                const oldStatus = appData.os[idx].status;
+                appData.os[idx] = {...appData.os[idx], cliente, aparelho: document.getElementById('os-aparelho').value, valor, status};
+                
+                // Se finalizou agora, gera receita
+                if(status === 'Entregue' && oldStatus !== 'Entregue') {
+                    appData.movimentacoes.push({
+                        data: new Date().toLocaleDateString(),
+                        desc: `OS #${id} - ${cliente}`,
+                        valor: valor,
+                        tipo: 'R'
+                    });
+                }
+            } else {
+                const newId = Date.now();
+                appData.os.push({
+                    id: newId,
+                    cliente,
+                    aparelho: document.getElementById('os-aparelho').value,
+                    valor,
+                    status,
+                    data: new Date().toLocaleDateString()
+                });
+                if(status === 'Entregue') {
+                    appData.movimentacoes.push({
+                        data: new Date().toLocaleDateString(),
+                        desc: `OS #${newId} - ${cliente}`,
+                        valor: valor,
+                        tipo: 'R'
+                    });
+                }
+            }
+            save();
+            closeModals();
+        };
+
+        function deleteOS(id) {
+            if(confirm("Apagar esta OS?")) {
+                appData.os = appData.os.filter(x => x.id != id);
+                save();
+            }
+        }
+
+        // --- CRUD ESTOQUE ---
+        function openEstoqueModal() {
+            document.getElementById('modal-estoque').style.display = 'flex';
+        }
+
+        document.getElementById('form-estoque').onsubmit = (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('est-nome').value;
+            const qtd = parseInt(document.getElementById('est-qtd').value);
+            const custo = parseFloat(document.getElementById('est-custo').value);
+            const totalCusto = qtd * custo;
+
+            appData.estoque.push({
+                id: Date.now(),
+                nome, qtd, custo,
+                dataEntrada: new Date()
+            });
+
+            appData.movimentacoes.push({
+                data: new Date().toLocaleDateString(),
+                desc: `Compra: ${nome} (x${qtd})`,
+                valor: totalCusto,
+                tipo: 'D'
+            });
+
+            save();
+            closeModals();
+        };
+
+        function deleteEstoque(id) {
+            if(confirm("Remover item do stock?")) {
+                appData.estoque = appData.estoque.filter(x => x.id != id);
+                save();
+            }
+        }
+
+        // --- AUXILIARES ---
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+        }
+
+        function formatBRL(v) {
+            return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // --- RENDERIZAÇÃO ---
+        function render() {
+            // Dashboard OS
+            const dashBody = document.querySelector('#table-dash-os tbody');
+            dashBody.innerHTML = appData.os.filter(x => x.status !== 'Entregue').slice(0, 5).map(x => `
+                <tr>
+                    <td>${x.cliente.split(' ')[0]}</td>
+                    <td>${x.aparelho}</td>
+                    <td><span class="badge status-${x.status.toLowerCase()}">${x.status}</span></td>
+                    <td>${formatBRL(x.valor)}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="4" style="text-align:center">Nenhuma OS ativa</td></tr>';
+
+            // Lista OS Completa
+            const osBody = document.getElementById('os-list-body');
+            osBody.innerHTML = appData.os.map(x => `
+                <tr>
+                    <td>#${x.id.toString().slice(-4)}</td>
+                    <td><strong>${x.cliente}</strong><br><small>${x.aparelho}</small></td>
+                    <td><span class="badge status-${x.status.toLowerCase()}">${x.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="openOSModal(${x.id})">✎</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteOS(${x.id})">✕</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Stock
+            const estBody = document.getElementById('estoque-list-body');
+            let garradosCount = 0;
+            estBody.innerHTML = appData.estoque.map(x => {
+                const diasNoEstoque = Math.floor((new Date() - new Date(x.dataEntrada)) / (1000 * 60 * 60 * 24));
+                const isGarrado = diasNoEstoque > 60;
+                if(isGarrado) garradosCount++;
+
+                return `<tr>
+                    <td>${x.nome}</td>
+                    <td>${x.qtd}</td>
+                    <td>${formatBRL(x.custo)}</td>
+                    <td><span style="color: ${isGarrado ? 'red' : 'green'}; font-weight: bold;">${isGarrado ? 'GARRADO' : 'OK'}</span></td>
+                </tr>`;
+            }).join('');
+
+            // Financeiro
+            const finBody = document.getElementById('fin-list-body');
+            let recTotal = 0, desTotal = 0;
+            finBody.innerHTML = [...appData.movimentacoes].reverse().map(m => {
+                if(m.tipo === 'R') recTotal += m.valor; else desTotal += m.valor;
+                return `<tr>
+                    <td>${m.data}</td>
+                    <td>${m.desc}</td>
+                    <td style="color: ${m.tipo === 'R' ? 'green' : 'red'}; font-weight: bold;">
+                        ${m.tipo === 'R' ? '+' : '-'} ${formatBRL(m.valor)}
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // KPIs
+            document.getElementById('kpi-receita').innerText = formatBRL(recTotal);
+            document.getElementById('kpi-despesa').innerText = formatBRL(desTotal);
+            document.getElementById('kpi-garrado').innerText = `${garradosCount} itens`;
+            document.getElementById('fin-balanco').innerText = formatBRL(recTotal - desTotal);
+            document.getElementById('fin-balanco').style.color = (recTotal - desTotal) >= 0 ? 'var(--success-color)' : 'var(--danger-color)';
+        }
+
+        // Boot
+        window.onload = () => {
+            document.getElementById('date-now').innerText = new Date().toLocaleDateString('pt-pt', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            render();
+        };
+    </script>
+</body>
+</html>
